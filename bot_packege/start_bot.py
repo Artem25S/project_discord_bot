@@ -84,6 +84,7 @@ async def инфо(ctx):
         emb = discord.Embed(title='Помощь', colour=discord.Colour.green(),)
         emb.set_image(url='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSdEETL50Glbryer5Ut_e0wbP-XPex_AIThQ&usqp=CAU')
         emb.add_field(name='!test', value='тестовая команда')
+        emb.add_field(name='!qr<ссылка>', value='позволяет получить qr код из ссылки')
         emb.add_field(name='!статус', value='узнать кол-во нарушений')
         emb.add_field(name='!волк', value='вызвать рандомную цитату волка')
         emb.add_field(name='!yandex<запрос>', value='воспользоваться поисковиком')
