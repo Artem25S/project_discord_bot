@@ -13,8 +13,6 @@ import webbrowser as wb
 
 import to_json
 import my_qr
-import extract_qr
-
 
 bool_start = True
 staus = ''
@@ -127,12 +125,6 @@ async def yandex(ctx ,*, arg_1 = None):
 async def qr(ctx, *, arg):
     my_qr.make_qr(arg)
     await ctx.send('Ваш qr-код', file=discord.File('my_qr.png'))
-@bot.command()
-async def ссылка_qr(ctx, *, arg):
-    result = str(extract_qr.get_qr(arg))
-    print(result)
-    await ctx.send(f'Ваша ссылка из qr-кода: {result}')
-
 
 @bot.command()
 async def статус(ctx):
