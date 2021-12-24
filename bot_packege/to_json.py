@@ -1,4 +1,5 @@
 import json
+# метод создания json файла с использованием кодировки utf-8 из исходного txt
 def create_json():
     ar = []
 
