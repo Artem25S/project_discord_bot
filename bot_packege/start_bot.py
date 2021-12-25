@@ -14,6 +14,8 @@ import my_qr
 
 bool_start = True
 staus = ''
+# установка 6 нарушений, если не задано
+counter_warning = int(5)
 
 # Реализация меню консоли для управления ботом
 while bool_start:
@@ -21,7 +23,8 @@ while bool_start:
     print('1)Включить бота')
     print('2)Обновить список запрещенных слов')
     print('3)Установить статус Proj_Bot')
-    print('4)Завершить работу')
+    print('4)Установить кол-во предупреждений(мат фильтр)')
+    print('5)Завершить работу')
     choice = int(input('Ваш выбор:'))
     if choice == 1:
         break
@@ -34,6 +37,13 @@ while bool_start:
         print('Статус...........ОК')
         print()
     elif choice == 4:
+        print()
+        counter_warning = int(input('Введите кол-во предупреждений: '))
+        counter_warning -= 1
+        print()
+        print('Установлено новое кол-во допустимых нарушений...........ОК')
+        print()
+    elif choice == 5:
         exit()
     else:
         print()
@@ -278,21 +288,30 @@ async def on_message(message):
             my_cur = my_base.cursor()
             my_cur.execute('INSERT INTO  {}  VALUES(?, ?)'.format(name), (message.author.id, 1)).fetchone()
             my_base.commit()
-            await message.channel.send(f'{message.author.mention}, у вас первое предупреждение! (После 3 предупреждения будет приняты меры!)')
-        elif warning[1] == 1:
+            print('Записываю 1 нарушение пользователю!')
+            await message.channel.send(f'{message.author.mention}, у вас первое предупреждение! (После {counter_warning + 1} предупреждения будет приняты меры!)')
+        elif (warning[1] >= 1) and (warning[1] != counter_warning):
             my_base = sqlite3.connect('bot.db')
             my_cur = my_base.cursor()
-            my_cur.execute('UPDATE {} SET count == ? WHERE userid == ?'.format(name), (2, message.author.id))
+            warning_now = (my_cur.execute('SELECT count FROM {} WHERE userid == ?'.format(name), (message.author.id,)).fetchone())
+            now_counter = warning_now[0]
+            now_counter = int(now_counter)
+            now_counter += 1
+            print('Записываю', now_counter, 'нарушение пользователю!')
+            my_cur.execute('UPDATE {} SET count == ? WHERE userid == ?'.format(name), (now_counter, message.author.id))
             my_base.commit()
             my_base.close()
-            await message.channel.send(f'{message.author.mention}, в полку ваших предупреждений прибыло! (После 3 предупреждения будет приняты меры!)')
+            await message.channel.send(f'{message.author.mention}, в полку ваших предупреждений прибыло! (После {counter_warning + 1} предупреждения будет приняты меры!)')
 
-        elif warning[1] == 2:
+        elif warning[1] == counter_warning:
             my_base = sqlite3.connect('bot.db')
             my_cur = my_base.cursor()
-            my_cur.execute('UPDATE {} SET count == ? WHERE userid == ?'.format(name), (3, message.author.id))
+            warning_now = my_cur.execute('SELECT * FROM {} WHERE userid == ?'.format(name), (message.author.id,)).fetchone()
+            counter_now = int(warning_now[1]) + 1
+            my_cur.execute('UPDATE {} SET count == ? WHERE userid == ?'.format(name), (counter_now, message.author.id))
             my_base.commit()
             my_base.close()
+            print('Записываю', counter_now, 'нарушение пользователю  и выдаю ему бан!')
             await message.channel.send(f'{message.author.mention}, Забанен за использование недопустимых слов!')
             await message.author.ban(reason='Недопустимые выражения')
     await bot.process_commands(message)
@@ -333,6 +352,5 @@ async def разбанить_error(ctx, error):
 async def qr_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f'{ctx.author.name}, Вы не ввели сслыку или сообщение !!!')
-
 
 bot.run(os.getenv('TOKEN'))
